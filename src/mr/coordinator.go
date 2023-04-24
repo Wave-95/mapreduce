@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/rpc"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -38,6 +39,7 @@ type Coordinator struct {
 	MapTasksRemaining    int
 	ReduceTasks          []*ReduceTask
 	ReduceTasksRemaining int
+	Mu                   sync.Mutex
 }
 
 // Your code here -- RPC handlers for the worker to call.
@@ -82,15 +84,20 @@ func MakeCoordinator(files []string, nReduce int) *Coordinator {
 	c.MapTasksRemaining = len(files)
 	c.ReduceTasks = make([]*ReduceTask, nReduce)
 	c.ReduceTasksRemaining = nReduce
+	c.Mu = sync.Mutex{}
 
 	//Initialize map tasks
 	for i, file := range files {
-		c.MapTasks[i] = &MapTask{FileName: file, Task: Task{Status: IDLE}}
+		c.MapTasks[i] = new(MapTask)
+		c.MapTasks[i].FileName = file
+		c.MapTasks[i].Status = IDLE
 	}
 
 	//Initialize reduce tasks
 	for i := 0; i < nReduce; i++ {
-		c.ReduceTasks[i] = &ReduceTask{Region: i + 1, Task: Task{Status: IDLE}}
+		c.ReduceTasks[i] = new(ReduceTask)
+		c.ReduceTasks[i].Region = nReduce + 1
+		c.ReduceTasks[i].Status = IDLE
 	}
 
 	fmt.Printf("Coordinator initialized with %v Map Tasks\n", len(files))
