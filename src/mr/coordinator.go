@@ -88,16 +88,18 @@ func MakeCoordinator(files []string, nReduce int) *Coordinator {
 
 	//Initialize map tasks
 	for i, file := range files {
-		c.MapTasks[i] = new(MapTask)
-		c.MapTasks[i].FileName = file
-		c.MapTasks[i].Status = IDLE
+		c.MapTasks[i] = &MapTask{
+			FileName: file,
+			Task:     Task{Status: IDLE},
+		}
 	}
 
 	//Initialize reduce tasks
 	for i := 0; i < nReduce; i++ {
-		c.ReduceTasks[i] = new(ReduceTask)
-		c.ReduceTasks[i].Region = nReduce + 1
-		c.ReduceTasks[i].Status = IDLE
+		c.ReduceTasks[i] = &ReduceTask{
+			Region: nReduce + 1,
+			Task:   Task{Status: IDLE},
+		}
 	}
 
 	fmt.Printf("Coordinator initialized with %v Map Tasks\n", len(files))
